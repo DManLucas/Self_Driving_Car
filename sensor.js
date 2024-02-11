@@ -1,98 +1,118 @@
 class Sensor {
+  // Defining a class named Sensor
   constructor(car) {
-    this.car = car;
-    this.rayCount = 5;
-    this.rayLength = 150;
-    this.raySpread = Math.PI / 2;
+    // Constructor function for Sensor class, takes in a car object
+    this.car = car; // Setting the car object to an instance variable
+    this.rayCount = 5; // Setting the number of rays the sensor will cast
+    this.rayLength = 150; // Setting the length of the rays
+    this.raySpread = Math.PI / 2; // Setting the spread of the rays
 
-    this.rays = [];
-    this.readings = [];
+    this.rays = []; // Initializing an empty array for rays
+    this.readings = []; // Initializing an empty array for readings
   }
 
   update(roadBorders, traffic) {
-    this.#castRays();
-    this.readings = [];
+    // Update function, takes in roadBorders and traffic as arguments
+    this.#castRays(); // Calling the private function castRays
+    this.readings = []; // Resetting the readings array
     for (let i = 0; i < this.rays.length; i++) {
-      this.readings.push(this.#getReading(this.rays[i], roadBorders, traffic));
+      // Looping through the rays array
+      this.readings.push(this.#getReading(this.rays[i], roadBorders, traffic)); // Calling the private function getReading and pushing the result into the readings array
     }
   }
 
   #getReading(ray, roadBorders, traffic) {
-    let touches = [];
+    // Private function for getting readings from the rays
+    let touches = []; // Initializing an empty array for touches
     for (let i = 0; i < roadBorders.length; i++) {
+      // Looping through the roadBorders array
       const touch = getIntersection(
-        ray[0],
-        ray[1],
-        roadBorders[i][0],
-        roadBorders[i][1]
+        // Calling the getIntersection function
+        ray[0], // With the start point of the ray
+        ray[1], // And the end point of the ray
+        roadBorders[i][0], // And the start point of the roadBorder
+        roadBorders[i][1] // And the end point of the roadBorder
       );
       if (touch) {
-        touches.push(touch);
+        // If the function returns a value
+        touches.push(touch); // Push the value into the touches array
       }
     }
 
     for (let i = 0; i < traffic.length; i++) {
-      const poly = traffic[i].polygon;
+      // Looping through the traffic array
+      const poly = traffic[i].polygon; // Setting the polygon of the current traffic object to a variable
       for (let j = 0; j < poly.length; j++) {
+        // Looping through the points of the polygon
         const value = getIntersection(
-          ray[0],
-          ray[1],
-          poly[j],
-          poly[(j + 1) % poly.length]
+          // Calling the getIntersection function
+          ray[0], // With the start point of the ray
+          ray[1], // And the end point of the ray
+          poly[j], // And the current point of the polygon
+          poly[(j + 1) % poly.length] // And the next point of the polygon
         );
         if (value) {
-          touches.push(value);
+          // If the function returns a value
+          touches.push(value); // Push the value into the touches array
         }
       }
     }
 
     if (touches.length == 0) {
-      return null;
+      // If there are no touches
+      return null; // Return null
     } else {
-      const offsets = touches.map((e) => e.offset);
-      const minOffset = Math.min(...offsets);
-      return touches.find((e) => e.offset == minOffset);
+      // Otherwise
+      const offsets = touches.map((e) => e.offset); // Map the touches array to an array of offsets
+      const minOffset = Math.min(...offsets); // Find the minimum offset
+      return touches.find((e) => e.offset == minOffset); // Return the touch with the minimum offset
     }
   }
 
   #castRays() {
-    this.rays = [];
+    // Private function for casting rays
+    this.rays = []; // Resetting the rays array
     for (let i = 0; i < this.rayCount; i++) {
-      const rayAngle =
+      // Looping through the number of rays
+      const rayAngle = // Calculating the angle of the ray
         lerp(
-          this.raySpread / 2,
-          -this.raySpread / 2,
-          this.rayCount == 1 ? 0.5 : i / (this.rayCount - 1)
-        ) + this.car.angle;
+          // Using the lerp function
+          this.raySpread / 2, // From the start angle
+          -this.raySpread / 2, // To the end angle
+          this.rayCount == 1 ? 0.5 : i / (this.rayCount - 1) // Based on the current index
+        ) + this.car.angle; // And adding the car's angle
 
-      const start = { x: this.car.x, y: this.car.y };
+      const start = { x: this.car.x, y: this.car.y }; // Setting the start point of the ray
       const end = {
         x: this.car.x - Math.sin(rayAngle) * this.rayLength,
         y: this.car.y - Math.cos(rayAngle) * this.rayLength,
-      };
-      this.rays.push([start, end]);
+      }; // Calculating the end point of the ray
+      this.rays.push([start, end]); // Pushing the start and end points into the rays array
     }
   }
 
   draw(ctx) {
+    // Draw function, takes in the canvas context as an argument
     for (let i = 0; i < this.rayCount; i++) {
-      let end = this.rays[i][1];
+      // Looping through the rays array
+      let end = this.rays[i][1]; // Setting the end point of the ray
       if (this.readings[i]) {
-        end = this.readings[i];
+        // If there is a reading for the current ray
+        end = this.readings[i]; // Setting the end point to the reading
       }
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "red";
-      ctx.moveTo(this.rays[i][0].x, this.rays[i][0].y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
+      ctx.beginPath(); // Starting a new path
+      ctx.lineWidth = 2; // Setting the line width
+      ctx.strokeStyle = "red"; // Setting the stroke style
+      ctx.moveTo(this.rays[i][0].x, this.rays[i][0].y); // Moving to the start point of the ray
+      ctx.lineTo(end.x, end.y); // Drawing a line to the end point
+      ctx.stroke(); // Stroking the path
 
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "black";
-      ctx.moveTo(this.rays[i][1].x, this.rays[i][1].y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
+      ctx.beginPath(); // Starting a new path
+      ctx.lineWidth = 2; // Setting the line width
+      ctx.strokeStyle = "black"; // Setting the stroke style
+      ctx.moveTo(this.rays[i][1].x, this.rays[i][1].y); // Moving to the end point of the ray
+      ctx.lineTo(end.x, end.y); // Drawing a line to the end point
+      ctx.stroke(); // Stroking the path
     }
   }
 }
