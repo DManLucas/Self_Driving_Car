@@ -10,7 +10,6 @@ function getIntersection(A, B, C, D) {
   if (bottom != 0) {
     const t = tTop / bottom;
     const u = uTop / bottom;
-
     if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
       return {
         x: lerp(A.x, B.x, t),
@@ -19,6 +18,7 @@ function getIntersection(A, B, C, D) {
       };
     }
   }
+
   return null;
 }
 
@@ -37,4 +37,17 @@ function polysIntersect(poly1, poly2) {
     }
   }
   return false;
+}
+
+function getRGBA(value) {
+  const alpha = Math.abs(value);
+  const R = value < 0 ? 0 : 255;
+  const G = R;
+  const B = value > 0 ? 0 : 255;
+  return "rgba(" + R + "," + G + "," + B + "," + alpha + ")";
+}
+
+function getRandomColor() {
+  const hue = 290 + Math.random() * 260;
+  return "hsl(" + hue + ", 100%, 60%)";
 }
